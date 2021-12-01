@@ -1,5 +1,5 @@
 import {
-  sanitizeUrl,
+  extractHost,
   getRules,
   updateRules,
   storageApi,
@@ -11,7 +11,8 @@ function process() {
   document.getElementById("addBtn").addEventListener(
     "click",
     () => {
-      let url = sanitizeUrl(document.getElementById("url").value)
+      let url = extractHost(document.getElementById("url").value)
+      // TODO: handle subdomains, presence/absence of http/www
       if (url) {
         getRules().then(rules => {
           // Todo: Check if the url is already added
@@ -50,7 +51,7 @@ function process() {
 
 async function refreshList() {
   const rules = await getRules()
-  const list = document.getElementById("limited-list")
+  const list = document.getElementById("deny-list")
   list.innerHTML = ""
   rules.forEach(rule => {
     list.innerHTML += `<li>${rule.condition.urlFilter}(${rule.id})</li>`
@@ -67,4 +68,4 @@ async function clearAll() {
   } else console.log("Nothing to remove")
 }
 
-document.addEventListener("DOMContentLoaded", process)
+process()

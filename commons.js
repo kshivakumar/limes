@@ -1,4 +1,5 @@
-function sanitizeUrl(url) {
+function extractHost(url) {
+  // TODO: Improve
   if (!url.startsWith('http')) url = 'https://' + url
   let host = (new URL(url)).host
   if (host) return host
@@ -14,4 +15,4 @@ const storageApi = chrome.storage.sync
 //   }
 // }
 
-export { sanitizeUrl, getRules, updateRules, storageApi }
+export { extractHost, getRules, updateRules, storageApi }
