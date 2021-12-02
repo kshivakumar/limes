@@ -1,42 +1,53 @@
 import { getRules, updateRules, storageApi } from "./commons.js"
 
-console.log("Hello")
-
 const STATE_CHECK_FREQ = 30 // minutes
 
 chrome.runtime.onInstalled.addListener(() => {
-  storageApi.set({'urls': {}})
+  storageApi.set({ domains: {} })
 })
 
 // chrome.runtime.onStartup.addListener()
 
-
 // TBD: Read history to check if the user visited blocked sites on mobile
-
 
 // How to detect and disable a site after user visits it?
 // Check history every 30 mins to see if the limited site was visited
 // It's probably not efficient to check every url visit
 
-chrome.alarms.create('checkState', {
+chrome.alarms.create("checkState", {
   delayInMinutes: 0,
   periodInMinutes: STATE_CHECK_FREQ,
 })
 
 chrome.alarms.onAlarm.addListener(alarm => {
-  if (alarm.name == 'checkState') {
-    chrome.history.search({
-      text: "engadget.com",
-      maxResults: 25,
-      startTime: calcStartTime('day'),
-    })
+  if (alarm.name == "checkState") {
+    updateState()
   }
 })
 
-async function loop() {
-  let rules = await getRules()
-  let stUrls = await storageApi.get(['urls'])
-  
+function updateState() {
+  storageApi
+    .get(["domains"])
+    .then(results => results["domains"])
+    .then(domains => {
+      for (let domain in domains) {
+        let freq = domains[domain].frequency
+        chrome.history.search(
+          {
+            text: domain,
+            maxResults: 25,
+            startTime: calcStartTime(freq),
+          },
+          searches => {}
+        )
+      }
+    })
+  getRules().then(rules => {
+    rules.map(rule => {
+      let id = rule.id
+      let domain = rule.condition.urlFilter
+    })
+  })
 }
 
 function calculateNextVisit(frequency, count, lastVisit) {
@@ -76,4 +87,3 @@ function calcStartTime(frequency) {
 // chrome.runtime.onStartup.addListener(
 //   callback: () => void,
 // )
-

@@ -2,6 +2,7 @@ import {
   extractHost,
   getRules,
   updateRules,
+  generateRule,
   storageApi,
 } from "./commons.js"
 
@@ -11,32 +12,42 @@ function process() {
   document.getElementById("addBtn").addEventListener(
     "click",
     () => {
-      let url = extractHost(document.getElementById("url").value)
+      let url = extractHost(document.getElementById("newDomain").value)
       // TODO: handle subdomains, presence/absence of http/www
       if (url) {
-        getRules().then(rules => {
-          // Todo: Check if the url is already added
-          let nextId = Math.max(0, ...rules.map(r => r.id)) + 1
-          let addRules = [
-            {
-              id: nextId,
-              action: {
-                type: "redirect",
-                redirect: { extensionPath: "/redirect.html" },
-              },
-              condition: { urlFilter: url, resourceTypes: ["main_frame"] },
-            },
-          ]
-          updateRules({ addRules }).then(() => console.log("Updated", nextId))
+        storageApi
+          .get(["domains"])
+          .then(results => results["domains"])
+          .then(existingDomains => {
+            if (url in existingDomains) {
+              alert("domain already added")
+            } else {
+              let nextId =
+                Math.max(
+                  0,
+                  ...Object.values(existingDomains).map(domain => domain.ruleId)
+                ) + 1
+              let addRules = generateRule(nextId, url)
 
-          refreshList()
-        })
-      } else console.error(`Invalid URL ${document.getElementById("url").value}`)
+              updateRules({ addRules }).then(() =>
+                storageApi
+                  .set({
+                    domains: {
+                      ...existingDomains,
+                      [url]: { ruleId: nextId, frequency: "day", count: 1 },
+                    },
+                  })
+                  .then(() => refreshList())
+              )
+            }
+          })
+      } else alert(`Invalid URL ${document.getElementById("newDomain").value}`)
     },
     false
   )
 
   document.getElementById("removeBtn").addEventListener("click", () => {
+    // TODO: Remove by domain
     let id = parseInt(document.getElementById("ruleid").value.trim())
     if (id) {
       let removeRuleIds = [id]
@@ -61,11 +72,9 @@ async function refreshList() {
 async function clearAll() {
   let removeRuleIds = await getRules().then(rules => rules.map(r => r.id))
   if (removeRuleIds) {
-    await updateRules({ removeRuleIds }).then(() =>
-      console.log("All cleared", removeRuleIds)
-    )
-    refreshList()
-  } else console.log("Nothing to remove")
+    await updateRules({ removeRuleIds })
+  }
+  storageApi.clear().then(() => refreshList())
 }
 
 process()
