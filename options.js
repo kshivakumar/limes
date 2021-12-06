@@ -27,7 +27,7 @@ function process() {
                   0,
                   ...Object.values(existingDomains).map(domain => domain.ruleId)
                 ) + 1
-              let addRules = generateRule(nextId, url)
+              let addRules = generateRule(nextId, "||" + url)
 
               updateRules({ addRules }).then(() =>
                 storageApi
@@ -48,12 +48,13 @@ function process() {
 
   document.getElementById("removeBtn").addEventListener("click", () => {
     // TODO: Remove by domain
+    // TODO: Update storage
     let id = parseInt(document.getElementById("ruleid").value.trim())
     if (id) {
       let removeRuleIds = [id]
-      updateRules({ removeRuleIds }).then(() => console.log("Removed", removeRuleIds))
-      
-      refreshList()
+      updateRules({ removeRuleIds })
+        .then(() => console.log("Removed", removeRuleIds))
+        .then(() => refreshList())
     }
   })
 
@@ -74,7 +75,9 @@ async function clearAll() {
   if (removeRuleIds) {
     await updateRules({ removeRuleIds })
   }
-  storageApi.clear().then(() => refreshList())
+  storageApi
+    .clear()
+    .then(() => storageApi.set({ domains: {} }).then(() => refreshList()))
 }
 
 process()

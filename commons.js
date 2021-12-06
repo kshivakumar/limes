@@ -17,21 +17,42 @@ const storageApi = chrome.storage.sync
 //   }
 // }
 
-function allowDomain(domain) {
+function undenyDomain(domain) {
   // remove the domain from rules - call updateRules({removeIds})
+  
 }
 
 function denyDomain(domain) {
-  // add the domain to the rules - call updateRules({addRules})
+  pass
+}
+
+async function getCurrentDeniedDomains() {
+  let rules = await getRules()
+  let domains = findDomainsFromRules(rules)
+  return domains
+}
+
+function findDomainsFromRules(rules) {
+  let domains = rules.map(rule => {
+    rule.urlFilter
+  })
+  return [...new Set(domains)]
+}
+
+function generateUrlFiltersFromDomain(domain) {
+  // Use regexFilter. Re-learn regex(for the upteenth time)
+  let variations = ['https://', 'http://', 'www.', 'https://www.', 'http://www.']
+  return variations.map(v => v + domain + '*')
 }
 
 function generateRule(id, urlFilter) {
+  // TODO: Replace urlFilter with regexFilter
   return [
     {
       id,
       action: {
-        type: "redirect",
-        redirect: { extensionPath: "/redirect.html" },
+        type: "block",
+        // redirect: { extensionPath: "/redirect.html" },
       },
       condition: { urlFilter, resourceTypes: ["main_frame"] },
     },
