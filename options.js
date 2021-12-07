@@ -4,6 +4,7 @@ import {
   updateRules,
   generateRule,
   storageApi,
+  hostFromRegex
 } from "./commons.js"
 
 function process() {
@@ -13,7 +14,6 @@ function process() {
     "click",
     () => {
       let url = extractHost(document.getElementById("newDomain").value)
-      // TODO: handle subdomains, presence/absence of http/www
       if (url) {
         storageApi
           .get(["domains"])
@@ -27,7 +27,7 @@ function process() {
                   0,
                   ...Object.values(existingDomains).map(domain => domain.ruleId)
                 ) + 1
-              let addRules = generateRule(nextId, "||" + url)
+              let addRules = generateRule(nextId, url)
 
               updateRules({ addRules }).then(() =>
                 storageApi
@@ -66,7 +66,7 @@ async function refreshList() {
   const list = document.getElementById("deny-list")
   list.innerHTML = ""
   rules.forEach(rule => {
-    list.innerHTML += `<li>${rule.condition.urlFilter}(${rule.id})</li>`
+    list.innerHTML += `<li>${hostFromRegex(rule.condition.regexFilter)}(${rule.id})</li>`
   })
 }
 

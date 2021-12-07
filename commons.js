@@ -19,7 +19,6 @@ const storageApi = chrome.storage.sync
 
 function undenyDomain(domain) {
   // remove the domain from rules - call updateRules({removeIds})
-  
 }
 
 function denyDomain(domain) {
@@ -39,14 +38,15 @@ function findDomainsFromRules(rules) {
   return [...new Set(domains)]
 }
 
-function generateUrlFiltersFromDomain(domain) {
-  // Use regexFilter. Re-learn regex(for the upteenth time)
-  let variations = ['https://', 'http://', 'www.', 'https://www.', 'http://www.']
-  return variations.map(v => v + domain + '*')
+function regexFilterForHost(host) {
+  return `^(https?:\/\/|www\.|https?:\/\/www\.)?${host}\/?`
 }
 
-function generateRule(id, urlFilter) {
-  // TODO: Replace urlFilter with regexFilter
+function hostFromRegex(regex) {
+  return regex.match(/\?([\w\.]+)\/\?/)[1]
+}
+
+function generateRule(id, host) {
   return [
     {
       id,
@@ -54,7 +54,10 @@ function generateRule(id, urlFilter) {
         type: "block",
         // redirect: { extensionPath: "/redirect.html" },
       },
-      condition: { urlFilter, resourceTypes: ["main_frame"] },
+      condition: {
+        regexFilter: regexFilterForHost(host),
+        resourceTypes: ["main_frame"],
+      },
     },
   ]
 }
@@ -64,5 +67,6 @@ export {
   getRules,
   updateRules,
   generateRule,
-  storageApi
+  storageApi,
+  hostFromRegex,
 }
