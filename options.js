@@ -1,10 +1,10 @@
 import {
-  extractHost,
+  INIT_STORAGE,
   getRules,
-  updateRules,
-  generateRule,
+  extractHostFromUrl,
   storageApi,
-  hostFromRegex
+  addHostToDeniedList,
+  removeHostFromDeniedList,
 } from "./commons.js"
 
 function process() {
@@ -13,48 +13,42 @@ function process() {
   document.getElementById("addBtn").addEventListener(
     "click",
     () => {
-      let url = extractHost(document.getElementById("newDomain").value)
-      if (url) {
-        storageApi
-          .get(["domains"])
-          .then(results => results["domains"])
-          .then(existingDomains => {
-            if (url in existingDomains) {
-              alert("domain already added")
-            } else {
-              let nextId =
-                Math.max(
-                  0,
-                  ...Object.values(existingDomains).map(domain => domain.ruleId)
-                ) + 1
-              let addRules = generateRule(nextId, url)
-
-              updateRules({ addRules }).then(() =>
-                storageApi
-                  .set({
-                    domains: {
-                      ...existingDomains,
-                      [url]: { ruleId: nextId, frequency: "day", count: 1 },
-                    },
-                  })
-                  .then(() => refreshList())
-              )
-            }
-          })
-      } else alert(`Invalid URL ${document.getElementById("newDomain").value}`)
+      let host = extractHostFromUrl(document.getElementById("addHost").value)
+      if (host) {
+        storageApi.get(["hosts", "hostConfigs"]).then(data => {
+          if (data.hosts.includes(host)) {
+            alert("host already added")
+          } else {
+            addHostToDeniedList(host).then(() =>
+              storageApi
+                .set({
+                  hosts: [...data.hosts, host],
+                  hostConfigs: [
+                    ...data.hostConfigs,
+                    { host, frequency: "day", count: 1 },
+                  ],
+                })
+                .then(() => refreshList())
+            )
+          }
+        })
+      } else alert(`Invalid URL ${document.getElementById("newHost").value}`)
     },
     false
   )
 
   document.getElementById("removeBtn").addEventListener("click", () => {
-    // TODO: Remove by domain
-    // TODO: Update storage
-    let id = parseInt(document.getElementById("ruleid").value.trim())
-    if (id) {
-      let removeRuleIds = [id]
-      updateRules({ removeRuleIds })
-        .then(() => console.log("Removed", removeRuleIds))
-        .then(() => refreshList())
+    let host = document.getElementById("removeHost").value.trim().toLowerCase()
+    if (host) {
+      storageApi.get(["hosts", "hostConfigs"]).then(data =>
+        storageApi
+          .set({
+            hosts: data.hosts.filter(sthost => sthost !== host),
+            hostConfigs: data.hostConfigs.filter(hc => hc.host !== host),
+          })
+          .then(() => removeHostFromDeniedList(host))
+          .then(() => refreshList())
+      )
     }
   })
 
@@ -62,22 +56,23 @@ function process() {
 }
 
 async function refreshList() {
-  const rules = await getRules()
+  const hosts = await storageApi.get(["hosts"]).then(data => data.hosts)
   const list = document.getElementById("deny-list")
   list.innerHTML = ""
-  rules.forEach(rule => {
-    list.innerHTML += `<li>${hostFromRegex(rule.condition.regexFilter)}(${rule.id})</li>`
+  console.log('hosts', hosts, typeof hosts)
+  hosts.forEach(host => {
+    list.innerHTML += `<li>${host}</li>`
   })
 }
 
 async function clearAll() {
   let removeRuleIds = await getRules().then(rules => rules.map(r => r.id))
   if (removeRuleIds) {
-    await updateRules({ removeRuleIds })
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds })
   }
   storageApi
     .clear()
-    .then(() => storageApi.set({ domains: {} }).then(() => refreshList()))
+    .then(() => storageApi.set({...INIT_STORAGE}).then(() => refreshList()))
 }
 
 process()

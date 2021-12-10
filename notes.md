@@ -4,12 +4,11 @@ User can select a site and set the frequency at which he's allowed to view that 
 ## Storage schema
 ```json
 {
-  "domains": {
-    "example.com": {
-      "ruleId": 1,
-      "frequency": "day | week | weekend",
-      "count": 3
-    }
+  "hosts": ["example.com", "foo.bar.com"],
+  "hostConfigs": [
+      {"host": "example.com", "frequency": "day | week | weekend", "count": 3},
+      {"host": "foo.bar.com", "frequency": "day | week | weekend", "count": 1}
+    ]
   }
 }
 ```

@@ -1,15 +1,17 @@
-function extractHost(url) {
-  // TODO: Improve
-  if (!url.startsWith("http")) url = "https://" + url
+function extractHostFromUrl(url) {
+  if (!url.toLowerCase().startsWith("http")) url = "https://" + url
   try {
-    let host = new URL(url).host
-    if (host) return host
+    return new URL(url).host
   } catch (error) {}
 }
 
 const getRules = chrome.declarativeNetRequest.getDynamicRules
-const updateRules = chrome.declarativeNetRequest.updateDynamicRules
 const storageApi = chrome.storage.sync
+
+const INIT_STORAGE = {
+  hosts: [],
+  hostConfigs: []
+}
 
 // class InvalidURLError extends Error {
 //   constructor(url) {
@@ -17,25 +19,25 @@ const storageApi = chrome.storage.sync
 //   }
 // }
 
-function undenyDomain(domain) {
-  // remove the domain from rules - call updateRules({removeIds})
+async function removeHostFromDeniedList(host) {
+  return chrome.declarativeNetRequest
+    .getDynamicRules()
+    .then(rules =>
+      rules.filter(rule => hostFromRegex(rule.condition.regexFilter) === host)
+    )
+    .then(
+      reqRule =>
+        reqRule &&
+        chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [reqRule[0].id],
+        })
+    )
 }
 
-function denyDomain(domain) {
-  pass
-}
-
-async function getCurrentDeniedDomains() {
-  let rules = await getRules()
-  let domains = findDomainsFromRules(rules)
-  return domains
-}
-
-function findDomainsFromRules(rules) {
-  let domains = rules.map(rule => {
-    rule.urlFilter
+async function addHostToDeniedList(host) {
+  return chrome.declarativeNetRequest.updateDynamicRules({
+    addRules: [generateRule(parseInt(Date.now() / 1000), host)],
   })
-  return [...new Set(domains)]
 }
 
 function regexFilterForHost(host) {
@@ -47,26 +49,25 @@ function hostFromRegex(regex) {
 }
 
 function generateRule(id, host) {
-  return [
-    {
-      id,
-      action: {
-        type: "block",
-        // redirect: { extensionPath: "/redirect.html" },
-      },
-      condition: {
-        regexFilter: regexFilterForHost(host),
-        resourceTypes: ["main_frame"],
-      },
+  return {
+    id: id,
+    action: {
+      type: "block",
+      // redirect: { extensionPath: "/redirect.html" },
     },
-  ]
+    condition: {
+      regexFilter: regexFilterForHost(host),
+      resourceTypes: ["main_frame"],
+    },
+  }
 }
 
 export {
-  extractHost,
+  INIT_STORAGE,
   getRules,
-  updateRules,
-  generateRule,
+  extractHostFromUrl,
   storageApi,
   hostFromRegex,
+  addHostToDeniedList,
+  removeHostFromDeniedList,
 }

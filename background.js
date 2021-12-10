@@ -1,9 +1,9 @@
-import { getRules, updateRules, storageApi } from "./commons.js"
+import { INIT_STORAGE, storageApi } from "./commons.js"
 
 const STATE_CHECK_FREQ = 30 // minutes
 
 chrome.runtime.onInstalled.addListener(() => {
-  storageApi.set({ domains: {} })
+  storageApi.set({ ...INIT_STORAGE })
 })
 
 // chrome.runtime.onStartup.addListener()
@@ -27,27 +27,18 @@ chrome.alarms.onAlarm.addListener(alarm => {
 
 function updateState() {
   storageApi
-    .get(["domains"])
-    .then(results => results["domains"])
-    .then(domains => {
-      for (let domain in domains) {
-        let freq = domains[domain].frequency
-        chrome.history.search(
-          {
-            text: domain,
-            maxResults: 25,
-            startTime: calcStartTime(freq),
-          },
-          searches => {}
-        )
-      }
+    .get(["hostConfigs"])
+    .then(data => {
+      data.hostConfigs.forEach(hostConfig => {
+        chrome.history.search({
+          text: hostConfig.host,
+          maxResults: 25,
+          startTime: calcStartTime(hostConfig.frequency)
+        }, searches => {
+          console.log('Do somethings')
+        })
+      })
     })
-  getRules().then(rules => {
-    rules.map(rule => {
-      let id = rule.id
-      let domain = rule.condition.urlFilter
-    })
-  })
 }
 
 function calculateNextVisit(frequency, count, lastVisit) {
