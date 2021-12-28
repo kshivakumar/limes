@@ -1,10 +1,16 @@
 import {
-  INIT_STORAGE,
-  getRules,
+  resetStore,
+  getAllHosts,
+  addHostConfig,
+  removeHostConfig,
+} from "./store.js"
+
+import {
+  removeAllRules,
   extractHostFromUrl,
-  storageApi,
-  addHostToDeniedList,
-  removeHostFromDeniedList,
+  generateHostConfig,
+  clearAlarmsAndListeners,
+  applyConfig,
 } from "./commons.js"
 
 function process() {
@@ -13,23 +19,15 @@ function process() {
   document.getElementById("addBtn").addEventListener(
     "click",
     () => {
-      let host = extractHostFromUrl(document.getElementById("addHost").value)
+      const domElem = document.getElementById("addHost")
+      let host = extractHostFromUrl(domElem.value)
       if (host) {
-        storageApi.get(["hosts", "hostConfigs"]).then(data => {
-          if (data.hosts.includes(host)) {
-            alert("host already added")
-          } else {
-            addHostToDeniedList(host).then(() =>
-              storageApi
-                .set({
-                  hosts: [...data.hosts, host],
-                  hostConfigs: [
-                    ...data.hostConfigs,
-                    { host, frequency: "day", count: 1 },
-                  ],
-                })
-                .then(() => refreshList())
-            )
+        getAllHosts().then(hosts => {
+          if (hosts.includes(host)) alert("host already added")
+          else {
+            addNewHost(host)
+              .then(() => refreshList())
+              .then(() => (domElem.value = ""))
           }
         })
       } else alert(`Invalid URL ${document.getElementById("newHost").value}`)
@@ -38,41 +36,40 @@ function process() {
   )
 
   document.getElementById("removeBtn").addEventListener("click", () => {
-    let host = document.getElementById("removeHost").value.trim().toLowerCase()
-    if (host) {
-      storageApi.get(["hosts", "hostConfigs"]).then(data =>
-        storageApi
-          .set({
-            hosts: data.hosts.filter(sthost => sthost !== host),
-            hostConfigs: data.hostConfigs.filter(hc => hc.host !== host),
-          })
-          .then(() => removeHostFromDeniedList(host))
-          .then(() => refreshList())
-      )
-    }
+    const domElem = document.getElementById("removeHost")
+    let host = domElem.value.trim().toLowerCase()
+    if (host)
+      removeHost(host)
+        .then(() => refreshList())
+        .then(() => (domElem.value = ""))
   })
 
   document.getElementById("clearAll").addEventListener("click", clearAll)
 }
 
+async function addNewHost(host, dayConfigs = {}) {
+  await addHostConfig(generateHostConfig(host, dayConfigs))
+  await applyConfig()
+}
+
+async function removeHost(host) {
+  await removeHostConfig(host)
+  await applyConfig()
+}
+
 async function refreshList() {
-  const hosts = await storageApi.get(["hosts"]).then(data => data.hosts)
+  const hosts = await getAllHosts()
   const list = document.getElementById("deny-list")
   list.innerHTML = ""
-  console.log('hosts', hosts, typeof hosts)
   hosts.forEach(host => {
     list.innerHTML += `<li>${host}</li>`
   })
 }
 
 async function clearAll() {
-  let removeRuleIds = await getRules().then(rules => rules.map(r => r.id))
-  if (removeRuleIds) {
-    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds })
-  }
-  storageApi
-    .clear()
-    .then(() => storageApi.set({...INIT_STORAGE}).then(() => refreshList()))
+  await clearAlarmsAndListeners()
+  await removeAllRules()
+  await resetStore().then(() => refreshList())
 }
 
 process()
