@@ -9,7 +9,7 @@
     "default_icon": {
       "128": "/images/logo.png"
     },
-    "default_popup": "options.html"
+    "default_popup": "/popup/index.html"
   },
   "background": {
     "service_worker": "background.js",

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Limes</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>Limes</h1>
+    </header>
+
+    <section id="home">
+      <button id="add-new-host">Add new website</button>
+
+      <div class="host-list-container">
+        <button id="host-list-display-toggle">Show websites</button>
+        <div class="host-list hidden"></div>
+      </div>
+    </section>
+
+    <section id="crud" class="hidden"></section>
+
+    <footer>
+      <a href="https://github.com/kshivakumar/limes" target="_blank">Help</a>
+      <button id="clearAll">Clear All</button>
+    </footer>
+
+    <!--
+    Default Page 
+    1. Button("Add new website") => CRUD page(empty)
+    2. Button("Mangage your websites") - Takes to the list page
+       Should be hidden if no managed websites
+    
+    List Page
+    1. Shows a list of controlled websites
+    2. Clicking a website => CRUD page(host prepopulated)
+    3. 
+    
+    CRUD Page
+    1. host textfield
+    2. Checkboxes, radio buttons, etc TBD
+    3. Add button if new host, Update button if existing, Delete button if existing
+  -->
+
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

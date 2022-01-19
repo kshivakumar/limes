@@ -1,0 +1,50 @@
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+body {
+  width: 30em;
+  /* height: 50vh; */
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  margin: 1em;
+}
+
+#home > * {
+  margin: 0.5em auto;
+}
+
+#crud {
+  background-color: skyblue;
+}
+
+.simple-controls-container {
+  display: flex;
+  flex-direction: row;
+  flex-flow: wrap;
+}
+
+.simple-control {
+  width: 12em;
+  border: solid 2px black;
+  padding: 0.5em;
+  margin: 0.5em;
+}
+
+.simple-control > span {
+  font-size: medium;
+}
+
+.hidden {
+  display: none;
+}
+
+footer {
+  border-top: solid rgb(232, 232, 232) 1px;
+  padding: 0.75em;
+}

@@ -105,3 +105,10 @@ User can select a site and set the frequency/schedule at which he's allowed to v
 ## Untested scenarios
 1. hosts with non-ascii chars
 2. timezones with daylight savings
+
+## To Do(Before publishing)
+1. Change the icon when the user visits a blocked website
+
+## Future plans
+1. Firefox support - https://blog.mozilla.org/addons/2021/05/27/manifest-v3-update/
+   FF will officially support Manifest v3(including declarativeNetRequest) in early 2022(may be delayed)
