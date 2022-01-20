@@ -5,7 +5,8 @@
 }
 
 body {
-  width: 30em;
+  min-width: 30em;
+  max-width: 30em;
   /* height: 50vh; */
 }
 
@@ -21,6 +22,8 @@ section {
 
 #crud {
   background-color: skyblue;
+  max-height: 75vh;
+  overflow-y: scroll;
 }
 
 .simple-controls-container {
@@ -38,6 +41,27 @@ section {
 
 .simple-control > span {
   font-size: medium;
+}
+
+.advanced-controls-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-control {
+  border: solid 2px black;
+  margin: 0.5em;
+  padding: 0.5em;
+}
+
+.day-control > div {
+  display: flex;
+  flex-direction: row;
+  margin: 0.25em auto;
+}
+
+.day-control > div > div {
+  border: solid 2px black;
 }
 
 .hidden {

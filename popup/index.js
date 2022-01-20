@@ -30,7 +30,12 @@ function process() {
   let crud = document.querySelector("#crud")
   document.querySelector("#add-new-host").addEventListener("click", () => {
     show("crud")
-    crud.appendChild(generateCrudHtml({ new: true }))
+    let child = generateCrudHtml({ new: true })
+    crud.appendChild(child)
+    crud.querySelector("#crudCancel").addEventListener("click", () => {
+      crud.removeChild(child)
+      show("home")
+    })
   })
 
   if (!hosts.length)
@@ -99,6 +104,28 @@ function generateHostListHtml(hosts) {
   return ul
 }
 
+function dayControlDiv(day) {
+  return `
+  <div class="day-control" id="day-control-${day}">
+    <span class="day-control-title">${day[0].toUpperCase() + day.slice(1)}</span>
+    <div>
+      <input type="checkbox" id="${day}-indefinite-block" />
+      <label for="${day}-indefinite-block">Indefinite Block</label>
+    </div>
+    <div>
+      <span>Schedule</span>
+      <div>Allow all day</div>
+      <div>Allow between <input type="time" value="16:00" min="00:00" required /> and <input type="time" value="17:00" max="23:59" required /></div>
+    </div>
+    <div>
+      <span>Visit Limits</span>
+      <div>Unlimited</div>
+      <div>Limited to <input type="number" value="1" min="1" max="99"/></div>
+    </div>
+  </div>
+  `
+}``
+
 function generateCrudHtml(payload) {
   let crudContainer = document.createElement("div")
   crudContainer.classList = ["crud-container"]
@@ -122,7 +149,17 @@ function generateCrudHtml(payload) {
     </div>
     
     <div class="advanced-controls-container hidden">
-      <h4>Under Construction</h4>
+      ${dayControlDiv('monday')}
+      ${dayControlDiv('tuesday')}
+      ${dayControlDiv('wednesday')}
+      ${dayControlDiv('thursday')}
+      ${dayControlDiv('friday')}
+      ${dayControlDiv('saturday')}
+      ${dayControlDiv('sunday')}
+    </div>
+    
+    <div>
+    <button id="crudCancel">Cancel</button>
     </div>
   `
 
