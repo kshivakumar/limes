@@ -14,6 +14,39 @@ function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
+function isObject(o) {
+  return Object.prototype.toString.call(o) !== "[object Object]"
+}
+
+function equalArrays(a1, a2) {
+  if (!Array.isArray(a1)) throw new Error(`${a1} is not an Array`)
+  if (!Array.isArray(a2)) throw new Error(`${a2} is not an Array`)
+
+  if (a1.length != a2.length) return false
+  return a1.every((v, i) => v === a2[i])
+}
+
+function equalObjects(obj1, obj2) {
+  if (!isObject(obj1)) throw new Error(`${obj1} is not an object`)
+  if (!isObject(obj2)) throw new Error(`${obj2} is not an object`)
+
+  function _equalObjects(o1, o2) {
+    if (Object.keys(o1).length != Object.keys(o2).length) return false
+    return Object.entries(o1).every(([k, o1v]) => {
+      let o2v = o2[k]
+      if (typeof o1v !== typeof o2v) return false
+      if (isObject(o1v)) {
+        return _equalObjects(o1v, o2v)
+      } else if (Array.isArray(o1v)) {
+        return equalArrays(o1v, o2v)
+      } else if (Number.isNaN(o1v) && Number.isNaN(o2v)) return true
+      else return o1v === o2v
+    })
+  }
+
+  return _equalObjects(obj1, obj2)
+}
+
 const DAY_START = "00:00"
 const DAY_END = "23:59"
 const INFINITY = 99999
@@ -298,7 +331,11 @@ export {
   DAY_START,
   DAY_END,
   INFINITY,
+  DEFAULT_ALLOW_CONFIG,
   ALARM_DAILY_CHECK,
+  deepClone,
+  equalArrays,
+  equalObjects,
   getRules,
   updateRules,
   removeAllRules,

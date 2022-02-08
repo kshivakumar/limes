@@ -21,7 +21,6 @@ section {
 }
 
 #crud {
-  background-color: skyblue;
   max-height: 75vh;
   overflow-y: scroll;
 }
@@ -43,13 +42,22 @@ section {
   font-size: medium;
 }
 
+.simple-control:not(.simple-control-selected):hover {
+  border: dotted 3px lightskyblue;
+  cursor: pointer;
+}
+
+.simple-control-selected {
+  border: solid 4px orchid;
+}
+
 .advanced-controls-container {
   display: flex;
   flex-direction: column;
 }
 
 .day-control {
-  border: solid 2px black;
+  border: solid 3px black;
   margin: 0.5em;
   padding: 0.5em;
 }

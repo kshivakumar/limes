@@ -20,7 +20,7 @@ async function getAllHosts() {
 
 async function getHostConfig(host) {
   return storeGet("configs").then(configs =>
-    configs.find(config => config.host === host)
+    configs.find(config => config.host === host).config
   )
 }
 
@@ -35,6 +35,10 @@ async function addHostConfig(newHostConfigs) {
       configs: [...configs, ...newHostConfigs],
     })
   )
+}
+
+async function updateHostConfig(hostConfig) {
+  
 }
 
 async function removeHostConfig(hosts) {

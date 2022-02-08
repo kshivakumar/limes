@@ -3,5 +3,8 @@
         "include": [
             "chrome"
         ]
+    },
+    "compilerOptions": {
+        "target": "ES2017"
     }
 }
