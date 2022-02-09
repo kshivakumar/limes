@@ -15,7 +15,7 @@ function deepClone(obj) {
 }
 
 function isObject(o) {
-  return Object.prototype.toString.call(o) !== "[object Object]"
+  return Object.prototype.toString.call(o) === "[object Object]"
 }
 
 function equalArrays(a1, a2) {

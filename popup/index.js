@@ -2,8 +2,10 @@ import {
   resetStore,
   getAllHosts,
   addHostConfig,
+  updateHostConfig,
   removeHostConfig,
   getHostConfig,
+  getAllHostConfigs,
 } from "../store.js"
 
 import {
@@ -227,7 +229,8 @@ async function generateCrudHtml(host = null, gotoHome) {
     } else {
       // let config = generateAdvancedConfig(state[])
     }
-    await addNewHost(crud.firstElementChild.value, config)
+    if (!host) await addNewHost(crud.firstElementChild.value, config)
+    else await updateHost(crud.firstElementChild.value, config)
     gotoHome()
   })
 
@@ -360,7 +363,7 @@ function generateSimpleConfig(payload) {
   let { visits, sched } = data || {}
   switch (type_) {
     case "blockWeekdays":
-      return WEEKDAYS.slice(0, 6).reduce((acc, day) => {
+      return WEEKDAYS.slice(5).reduce((acc, day) => {
         return { ...acc, [day]: deepClone(DEFAULT_ALLOW_CONFIG) }
       }, {})
     case "indefiniteBlock":
@@ -405,7 +408,9 @@ function presentationFromConfig(config) {
     (dayConfigs.length == 7) &
     dayConfigs
       .slice(1)
-      .every(({ schedule, _ }) => schedule == dayConfigs[0].schedule) &
+      .every(({ schedule, _ }) =>
+        equalArrays(schedule, dayConfigs[0].schedule)
+      ) &
     !equalArrays(dayConfigs[0].schedule, [DAY_START, DAY_END])
   let allDaysSameFreq = // all days same freq and !== default freq
     (dayConfigs.length == 7) &
@@ -438,8 +443,8 @@ function presentationFromConfig(config) {
 
   if (
     (dayConfigs.length == 2) &
-    (sat == DEFAULT_ALLOW_CONFIG) &
-    (sun == DEFAULT_ALLOW_CONFIG)
+    equalObjects(sat, DEFAULT_ALLOW_CONFIG) &
+    equalObjects(sun, DEFAULT_ALLOW_CONFIG)
   ) {
     return {
       type_: "simple",
@@ -460,7 +465,10 @@ async function addNewHost(host, dayConfigs = {}) {
   await applyConfig()
 }
 
-async function updateHost(host, dayConfigs) {}
+async function updateHost(host, dayConfigs) {
+  await updateHostConfig(generateHostConfig(host, dayConfigs))
+  await applyConfig()
+}
 
 async function removeHost(host) {
   await removeHostConfig(host)

@@ -19,8 +19,8 @@ async function getAllHosts() {
 }
 
 async function getHostConfig(host) {
-  return storeGet("configs").then(configs =>
-    configs.find(config => config.host === host).config
+  return storeGet("configs").then(
+    configs => configs.find(config => config.host === host).config
   )
 }
 
@@ -38,7 +38,15 @@ async function addHostConfig(newHostConfigs) {
 }
 
 async function updateHostConfig(hostConfig) {
-  
+  return getAllHostConfigs()
+    .then(configs =>
+      configs.map(c => (c.host == hostConfig.host ? hostConfig : c))
+    )
+    .then(updatedConfigs =>
+      storageApi.set({
+        configs: updatedConfigs,
+      })
+    )
 }
 
 async function removeHostConfig(hosts) {
@@ -84,6 +92,7 @@ export {
   getHostConfig,
   getAllHostConfigs,
   addHostConfig,
+  updateHostConfig,
   removeHostConfig,
   getHostConfigsByDay,
   getHostVisits,
